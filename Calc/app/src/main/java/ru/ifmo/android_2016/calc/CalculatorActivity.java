@@ -2,6 +2,7 @@ package ru.ifmo.android_2016.calc;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -77,8 +78,7 @@ public class CalculatorActivity extends AppCompatActivity implements View.OnClic
         clearButton.setOnClickListener(this);
 
         if (savedInstanceState != null) {
-            text.delete(0, text.length());
-            text.append(savedInstanceState.getString(KEY_RESULT));
+            text.replace(0, text.length(), savedInstanceState.getString(KEY_RESULT));
             resultTextView.setText(text);
             action = savedInstanceState.getChar(KEY_ACTION);
             num1 = savedInstanceState.getInt(KEY_NUM1);
@@ -86,81 +86,96 @@ public class CalculatorActivity extends AppCompatActivity implements View.OnClic
         }
     }
 
-    @Override
-    public void onClick(View v) {
-        if (action == '0') {
-            if (v == d0Button)
-                text.append("0");
-            if (v == d1Button)
-                text.append("1");
-            if (v == d2Button)
-                text.append("2");
-            if (v == d3Button)
-                text.append("3");
-            if (v == d4Button)
-                text.append("4");
-            if (v == d5Button)
-                text.append("5");
-            if (v == d6Button)
-                text.append("6");
-            if (v == d7Button)
-                text.append("7");
-            if (v == d8Button)
-                text.append("8");
-            if (v == d9Button)
-                text.append("9");
+    private void addNum2Digit(int digit) {
+        text.append(Integer.toString(digit));
+        if (action != '0')
+            num2 = num2 * 10 + digit;
+    }
+
+    private void setText(char ch) {
+        num2 = 0;
+        text.delete(0, text.length());
+        text.append(num1).append(ch);
+        action = ch;
+    }
+
+    private void addAction(char ch) {
+        num1 = num1 + num2;
+        setText(ch);
+    }
+
+    private void subAction(char ch) {
+        num1 = num1 - num2;
+        setText(ch);
+    }
+
+    private void mulAction(char ch) {
+        num1 = num1 * num2;
+        setText(ch);
+    }
+
+    private void divAction(char ch) {
+        if (num2 != 0) {
+            num1 = num1 / num2;
+            setText(ch);
         }
         else {
-            if (v == d0Button) {
-                text.append("0");
-                num2 = num2 * 10 + 0;
-            }
-            if (v == d1Button) {
-                text.append("1");
-                num2 = num2 * 10 + 1;
-            }
-            if (v == d2Button) {
-                text.append("2");
-                num2 = num2 * 10 + 2;
-            }
-            if (v == d3Button) {
-                text.append("3");
-                num2 = num2 * 10 + 3;
-            }
-            if (v == d4Button) {
-                text.append("4");
-                num2 = num2 * 10 + 4;
-            }
-            if (v == d5Button) {
-                text.append("5");
-                num2 = num2 * 10 + 5;
-            }
-            if (v == d6Button) {
-                text.append("6");
-                num2 = num2 * 10 + 6;
-            }
-            if (v == d7Button) {
-                text.append("7");
-                num2 = num2 * 10 + 7;
-            }
-            if (v == d8Button) {
-                text.append("8");
-                num2 = num2 * 10 + 8;
-            }
-            if (v == d9Button) {
-                text.append("9");
-                num2 = num2 * 10 + 9;
-            }
+            text.replace(0, text.length(), "ERROR");
+            action = '0';
+            num1 = 0;
+            num2 = 0;
         }
+    }
 
-        if (v == clearButton) {
+    private void noAction(char ch) {
+        if (TextUtils.isEmpty(text))
+            num1 = 0;
+        else
+            num1 = Integer.parseInt(text.toString());
+        setText(ch);
+    }
+
+    @Override
+    public void onClick(View v) {
+            if (v == d0Button) {
+                addNum2Digit(0);
+            }
+            else if (v == d1Button) {
+                addNum2Digit(1);
+            }
+            else if (v == d2Button) {
+                addNum2Digit(2);
+            }
+            else if (v == d3Button) {
+                addNum2Digit(3);
+            }
+            else if (v == d4Button) {
+                addNum2Digit(4);
+            }
+            else if (v == d5Button) {
+                addNum2Digit(5);
+            }
+            else if (v == d6Button) {
+                addNum2Digit(6);
+            }
+            else if (v == d7Button) {
+                addNum2Digit(7);
+            }
+            else if (v == d8Button) {
+                addNum2Digit(8);
+            }
+            else if (v == d9Button) {
+                addNum2Digit(9);
+            }
+
+        else if (v == clearButton) {
             text.delete(0, text.length());
             num1 = 0;
             num2 = 0;
             action = '0';
         }
 
-        if (v == eqvButton) {
+        else if (v == eqvButton) {
             switch (action) {
                 case '+': {
                     num1 = num1 + num2;
@@ -175,7 +190,16 @@ public class CalculatorActivity extends AppCompatActivity implements View.OnClic
                     break;
                 }
                 case '/': {
-                    num1 = num1 / num2;
+                    if (num2 != 0)
+                        num1 = num1 / num2;
+                    else {
+                        text.replace(0, text.length(), "ERROR");
+                        action = '0';
+                        num1 = 0;
+                        num2 = 0;
+                        resultTextView.setText(text);
+                        return;
+                    }
                     break;
                 }
                 case '0': {
@@ -188,236 +212,101 @@ public class CalculatorActivity extends AppCompatActivity implements View.OnClic
             action = '0';
         }
 
-        if (v == addButton) {
+        else if (v == addButton) {
              switch (action) {
                     case '+': {
-                        num1 = num1 + num2;
-                        num2 = 0;
-                        text.delete(0, text.length());
-                        text.append(num1).append('+');
-                        action = '+';
+                        addAction('+');
                         break;
                     }
                     case '-': {
-                        num1 = num1 - num2;
-                        num2 = 0;
-                        text.delete(0, text.length());
-                        text.append(num1).append('+');
-                        action = '+';
+                        subAction('+');
                         break;
                     }
                     case '*': {
-                        num1 = num1 * num2;
-                        num2 = 0;
-                        text.delete(0, text.length());
-                        text.append(num1).append('+');
-                        action = '+';
+                        mulAction('+');
                         break;
                     }
                     case '/': {
-                        if (num2 != 0) {
-                            num1 = num1 / num2;
-                            num2 = 0;
-                            text.delete(0, text.length());
-                            text.append(num1).append('+');
-                            action = '+';
-                        }
-                        else {
-                            text.delete(0, text.length());
-                            text.append("ERROR");
-                            action = '0';
-                            num1 = 0;
-                            num2 = 0;
-                        }
+                        divAction('+');
                         break;
                     }
                     case '0': {
-                        if (text.toString() == "")
-                            num1 = 0;
-                        else
-                            num1 = Integer.parseInt(text.toString());
-                        num2 = 0;
-                        text.delete(0, text.length());
-                        text.append(num1).append("+");
-                        action = '+';
+                        noAction('+');
                         break;
                     }
              }
-
         }
-
-        if (v == subButton) {
+        else if (v == subButton) {
             switch (action) {
                 case '+': {
-                    num1 = num1 + num2;
-                    num2 = 0;
-                    text.delete(0, text.length());
-                    text.append(num1).append('-');
-                    action = '-';
+                    addAction('-');
                     break;
                 }
                 case '-': {
-                    num1 = num1 - num2;
-                    num2 = 0;
-                    text.delete(0, text.length());
-                    text.append(num1).append('-');
-                    action = '-';
+                    subAction('-');
                     break;
                 }
                 case '*': {
-                    num1 = num1 * num2;
-                    num2 = 0;
-                    text.delete(0, text.length());
-                    text.append(num1).append('-');
-                    action = '-';
+                    mulAction('-');
                     break;
                 }
                 case '/': {
-                    if (num2 != 0) {
-                        num1 = num1 / num2;
-                        num2 = 0;
-                        text.delete(0, text.length());
-                        text.append(num1).append('-');
-                        action = '-';
-                    }
-                    else {
-                        text.delete(0, text.length());
-                        text.append("ERROR");
-                        action = '0';
-                        num1 = 0;
-                        num2 = 0;
-                    }
+                    divAction('-');
                     break;
                 }
                 case '0': {
-                    if (text.toString() == "")
-                        num1 = 0;
-                    else
-                        num1 = Integer.parseInt(text.toString());
-                    num2 = 0;
-                    text.delete(0, text.length());
-                    text.append(num1).append("-");
-                    action = '-';
+                    noAction('-');
                     break;
                 }
             }
-
         }
-
-        if (v == mulButton) {
+        else if (v == mulButton) {
             switch (action) {
                 case '+': {
-                    num1 = num1 + num2;
-                    num2 = 0;
-                    text.delete(0, text.length());
-                    text.append(num1).append('*');
-                    action = '*';
+                    addAction('*');
                     break;
                 }
                 case '-': {
-                    num1 = num1 - num2;
-                    num2 = 0;
-                    text.delete(0, text.length());
-                    text.append(num1).append('*');
-                    action = '*';
+                    subAction('*');
                     break;
                 }
                 case '*': {
-                    num1 = num1 * num2;
-                    num2 = 0;
-                    text.delete(0, text.length());
-                    text.append(num1).append('*');
-                    action = '*';
+                    mulAction('*');
                     break;
                 }
                 case '/': {
-                    if (num2 != 0) {
-                        num1 = num1 / num2;
-                        num2 = 0;
-                        text.delete(0, text.length());
-                        text.append(num1).append('*');
-                        action = '*';
-                    }
-                    else {
-                        text.delete(0, text.length());
-                        text.append("ERROR");
-                        action = '0';
-                        num1 = 0;
-                        num2 = 0;
-                    }
+                    divAction('*');
                     break;
                 }
                 case '0': {
-                    if (text.toString() == "")
-                        num1 = 0;
-                    else
-                        num1 = Integer.parseInt(text.toString());
-                    num2 = 0;
-                    text.delete(0, text.length());
-                    text.append(num1).append("*");
-                    action = '*';
+                    noAction('*');
                     break;
                 }
             }
-
         }
-
-        if (v == divButton) {
+        else if (v == divButton) {
             switch (action) {
                 case '+': {
-                    num1 = num1 + num2;
-                    num2 = 0;
-                    text.delete(0, text.length());
-                    text.append(num1).append('/');
-                    action = '/';
+                    addAction('/');
                     break;
                 }
                 case '-': {
-                    num1 = num1 - num2;
-                    num2 = 0;
-                    text.delete(0, text.length());
-                    text.append(num1).append('/');
-                    action = '/';
+                    subAction('/');
                     break;
                 }
                 case '*': {
-                    num1 = num1 * num2;
-                    num2 = 0;
-                    text.delete(0, text.length());
-                    text.append(num1).append('/');
-                    action = '/';
+                    mulAction('/');
                     break;
                 }
                 case '/': {
-                    if (num2 != 0) {
-                        num1 = num1 / num2;
-                        num2 = 0;
-                        text.delete(0, text.length());
-                        text.append(num1).append('/');
-                        action = '/';
-                    }
-                    else {
-                        text.delete(0, text.length());
-                        text.append("ERROR");
-                        action = '0';
-                        num1 = 0;
-                        num2 = 0;
-                    }
+                    divAction('/');
                     break;
                 }
                 case '0': {
-                    if (text.toString() == "")
-                        num1 = 0;
-                    else
-                        num1 = Integer.parseInt(text.toString());
-                    num2 = 0;
-                    text.delete(0, text.length());
-                    text.append(num1).append("/");
-                    action = '/';
+                    noAction('/');
                     break;
                 }
             }
-
         }
 
         resultTextView.setText(text);
